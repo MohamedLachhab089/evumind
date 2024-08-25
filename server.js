@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import User from "./Schema/User.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
+import cors from "cors";
 
 const server = express();
 const PORT = 3000;
@@ -13,6 +14,7 @@ const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/;
 
 server.use(express.json());
+server.use(cors());
 
 mongoose.connect(process.env.DB_LOCATION, {
   autoIndex: true,
@@ -104,15 +106,17 @@ server.post("/signin", (req, res) => {
   })
     .then((user) => {
       if (!user) {
-        return res.status(403).json({ message: "User(Email) not found" });
+        return res.status(403).json({ "error": "Email not found" });
       }
 
       bcrypt.compare(password, user.personal_info.password, (err, result) => {
         if (err) {
-          return res.status(403).json({ message: "Invalid credentials please try again" });
+          return res
+            .status(403)
+            .json({ message: "Invalid credentials please try again" });
         }
         if (!result) {
-          return res.status(403).json({ message: "Invalid password" });
+          return res.status(403).json({ "error": "Invalid password" });
         } else {
           return res.status(200).json(FormatDataToSend(user));
         }
