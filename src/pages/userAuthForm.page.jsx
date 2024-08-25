@@ -1,39 +1,35 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import InputBox from "../components/input.component";
 import googleIcon from "../imgs/google.png";
 import AnimationWrapper from "../common/page-animation";
-import { useRef } from "react";
+import { useRef, useContext } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { storeInSession } from "../common/session";
 
 // pour effectuer des requêtes HTTP
 // permet de communiquer avec des API en envoyant des requêtes GET, POST, PUT, DELETE, etc.
 import axios from "axios";
+import { UserContext } from "../App";
 
 const UserAuthForm = ({ type }) => {
   // useRef de React pour créer une référence mutable qui peut être attachée à un élément DOM dans votre composant.
   const authForm = useRef();
 
-  // const userAuthThroughServer = (serverRoute, formData) => {
-  //   axios
-  //     .post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)
-  //     .then(({ data }) => {
-  //       console.log(data);
-  //       toast.success("Success dazt");
-  //     })
-  //     .catch(({ response }) => {
-  //       toast.error(response.data.error);
-  //       toast.error(errorMessage);
-  //     });
-  // };
+  // let {
+  //   userAuth: { access_token },
+  //   setUserAuth,
+  // } = useContext(UserContext);
+
+  let { userAuth, setUserAuth } = useContext(UserContext);
+  let access_token = userAuth?.access_token;
 
   const userAuthThroughServer = (serverRoute, formData) => {
     axios
       .post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)
       .then(({ data }) => {
         storeInSession("user", JSON.stringify(data));
-        console.log(sessionStorage);
-        toast.success("Success!"); // Success message on successful login
+        setUserAuth(data);
+        toast.success("Success");
       })
       .catch(({ response }) => {
         // Display error messages based on server response
@@ -81,7 +77,9 @@ const UserAuthForm = ({ type }) => {
 
     userAuthThroughServer(serverRoute, formData);
   };
-  return (
+  return access_token ? (
+    <Navigate to="/" />
+  ) : (
     <AnimationWrapper key={type}>
       <section className="h-cover flex items-center justify-center">
         <Toaster />
